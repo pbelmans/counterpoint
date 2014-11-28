@@ -71,15 +71,24 @@ class Note:
 
 class Voice:
   _notes = []
-  _range = (Note(48), Note(80))
+  _range = (None, None)
 
-  def __init__(self, length):
+  def __init__(self, voiceType, length):
+    if voiceType == "soprano":
+      self._range = (Note(60), Note(84))
+    elif voiceType == "alto":
+      self._range = (Note(53), Note(76))
+    elif voiceType == "tenor":
+      self._range = (Note(48), Note(72))
+    elif voiceType == "bass":
+      self._range = (Note(40), Note(64))
+
     # we initialise the list to None's
     self._notes = [None] * length
 
   # container type methods
   def __getitem__(self, key):
-    return _notes[key]
+    return self._notes[key]
 
   def __setitem__(self, key, note):
     assert self._range[0] <= note
