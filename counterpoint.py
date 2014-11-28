@@ -71,6 +71,7 @@ class Note:
 
 class Voice:
   _notes = []
+  _type = ""
   _range = (None, None)
 
   def __init__(self, voiceType, length):
@@ -82,6 +83,8 @@ class Voice:
       self._range = (Note(48), Note(72))
     elif voiceType == "bass":
       self._range = (Note(40), Note(64))
+
+    self._type = voiceType
 
     # we initialise the list to None's
     self._notes = [None] * length
@@ -100,6 +103,7 @@ class Voice:
   # string representation
   def __str__(self):
     output = "Voice\n"
+    output += "  type: " + self._type + "\n"
     output += "  range: " + self._range[0].__str__() + " to " + self._range[1].__str__() + "\n"
 
     output += "  notes: "
@@ -114,8 +118,8 @@ class FirstSpecies:
 
   def __str__(self):
     output = ""
-    output += self.counterpoint.__str__()
-    output += self.cantus.__str__()
+    output += self._counterpoint.__str__() + "\n"
+    output += self._cantus.__str__()
 
     return output
 
