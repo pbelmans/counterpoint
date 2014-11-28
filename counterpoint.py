@@ -96,12 +96,6 @@ class Voice:
 
     self._notes[key] = note
 
-  # add a note to the voice
-  def add(self, note):
-    assert self._range[0] <= note
-    assert note <= self._range[1]
-
-    self._notes.append(note)
 
   # string representation
   def __str__(self):
@@ -114,8 +108,32 @@ class Voice:
 
     return output
 
-v = Voice(8)
-v[3] = Note(60)
-print v
+class FirstSpecies:
+  _cantus = None
+  _counterpoint = None
 
-print Note(80) - Note(74)
+  def __str__(self):
+    output = ""
+    output += self.counterpoint.__str__()
+    output += self.cantus.__str__()
+
+    return output
+
+  def cantus(self, voice):
+    self._cantus = voice # TODO check lengths?
+
+  def counterpoint(self, voice):
+    self._counterpoint = voice # TODO check lengths?
+
+
+line = [48, 52, 53, 55, 52, 57, 55, 52, 53, 52, 50, 48]
+cantus = Voice("tenor", 12)
+for i in range(12):
+  cantus[i] = Note(line[i])
+
+counterpoint = Voice("alto", 12)
+
+species = FirstSpecies()
+species.cantus(cantus)
+species.counterpoint(counterpoint)
+print species
