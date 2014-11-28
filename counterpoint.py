@@ -195,7 +195,7 @@ class AtMostTwoConsecutiveLeaps(HorizontalRule):
 
 class RangeAtMostTenth(HorizontalRule):
   def satisfied(self):
-    if max(filter(None, self._voice)) - min(filter(None, self._voice)) >= Interval(15):
+    if max(filter(None, self._voice)) - min(filter(None, self._voice)) >= Interval(15): # TODO apply the filter trick more often (!)
       return False
 
     return True
@@ -203,6 +203,13 @@ class RangeAtMostTenth(HorizontalRule):
 class BeginOnUnisonFifthOrOctave(TwoVoiceVerticalRule):
   def satisfied(self):
     return self._voices[1][0] - self._voices[0][0] in [Interval(-12), Interval(0), Interval(7), Interval(12)]
+
+class EndOnUnisonOrOctave(TwoVoiceVerticalRule):
+  def satisfied(self):
+    if self._voices[0][-1] != None and self._voices[1][-1] != None:
+      return self._voices[1][-1] - self._voices[0][-1] in [Interval(-12), Interval(0), Interval(12)]
+
+    return True
 
 class OnlyUnisonAtBeginOrEnd(TwoVoiceVerticalRule):
   def satisfied(self):
@@ -229,26 +236,49 @@ class NoParallelFifthsOrOctaves(TwoVoiceVerticalRule):
     
     return True
 
+class NotTooMuchMovement(HorizontalRule):
+  def satisfied(self):
+    pairs = list(zip(self._voice, self._voice[1:]))
+    pairs = filter(lambda pair: pair[0] != None and pair[1] != None, pairs)
+
+    # if there are at most 5 pairs of consecutive notes we won't consider it
+    if len(pairs) <= 5:
+      return True
+
+    steps = filter(lambda pair: (pair[1] - pair[0]).type() == "step", pairs)
+    skips = filter(lambda pair: (pair[1] - pair[0]).type() == "skip", pairs)
+    leaps = filter(lambda pair: (pair[1] - pair[0]).type() == "leap", pairs)
+
+    if len(steps) < len(skips):
+      return False
+
+    if len(leaps) >= 2:
+      return False
+
+    return True
 
 
 
 def solve(species):
   queue = collections.deque([species])
 
+  solutions = []
+
   while len(queue) > 0:
     print len(queue)
 
     species = queue.popleft()
 
+    if len(filter(None, species._counterpoint)) == 12: # TODO hardcoded...
+      solutions.append(species)
+      continue
+
     # look for first undefined note
     i = 0
-    while i < len(species._counterpoint) and species._counterpoint[i] != None:
+    while species._counterpoint[i] != None:
       i = i + 1
 
     print "up to", i, "notes now"
-
-    if i > 6:
-      print species
 
     for v in [53, 55, 57, 59, 60, 62, 64, 65, 67, 69, 71, 72, 74, 76] : # TODO hardcoded voice range...
       new = copy.deepcopy(species)
@@ -282,13 +312,22 @@ def solve(species):
       if not rule.satisfied():
         continue
 
+      rule = NotTooMuchMovement(new._counterpoint)
+      if not rule.satisfied():
+        continue
+
       rule = BeginOnUnisonFifthOrOctave(new._cantus, new._counterpoint)
+      if not rule.satisfied():
+        continue
+
+      rule = EndOnUnisonOrOctave(new._cantus, new._counterpoint)
       if not rule.satisfied():
         continue
 
 
       queue.append(new)
   
+  print len(solutions)
 
 
 line = [48, 52, 53, 55, 52, 57, 55, 52, 53, 52, 50, 48]
