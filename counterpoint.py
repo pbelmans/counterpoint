@@ -13,11 +13,14 @@ class Interval:
   def __sub__(self, other):
     return Interval(self._value - other._value)
 
+  def __eq__(self, other):
+    return self._value == other._value
+
   # how big is the interval?
   def type(self):
     if abs(self._value) <= 2:
       return "step"
-    elif abs(self.value_value) <= 5:
+    elif abs(self._value) <= 5:
       return "skip"
     else:
       return "leap"
@@ -45,7 +48,7 @@ class Note:
   def __eq__(self, other):
     return self._value == other._value
 
-  def __eq__(self, other):
+  def __neq__(self, other):
     return self._value != other._value
 
   def __gt__(self, other):
@@ -108,6 +111,9 @@ class Voice:
 
     self._notes[key] = note
 
+  def __len__(self):
+    return len(self._notes)
+
 
   # string representation
   def __str__(self):
@@ -140,7 +146,7 @@ class FirstSpecies:
 
 class Rule:
   def satisfied(self):
-    return True
+    raise NotImplementedError("This is an abstract method")
 
 class HorizontalRule(Rule):
   _voice = None
@@ -149,11 +155,11 @@ class HorizontalRule(Rule):
     self._voice = voice
 
 class TwoVoiceVerticalRule(Rule):
-  _voices = []
+  _voices = [None] * 2
 
   def __init__(self, low, high):
-    _voices[0] = low
-    _voices[1] = high
+    self._voices[0] = low
+    self._voices[1] = high
 
 """
 RULES
