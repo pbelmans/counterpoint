@@ -236,6 +236,18 @@ class NoParallelFifthsOrOctaves(TwoVoiceVerticalRule):
     
     return True
 
+class NoSequencesOfParallelThirdsOrSixths(TwoVoiceVerticalRule):
+  def satisfied(self):
+
+    for first, second, third, fourth in zip(zip(self._voices[0], self._voices[1]), zip(self._voices[0][1:], self._voices[1][1:]), zip(self._voices[0][2:], self._voices[1][2:]), zip(self._voices[0][3:], self._voices[1][3:])):
+      if first[0] != None and first[1] != None and second[0] != None and second[1] != None and third[0] != None and third[1] != None and fourth[0] != None and fourth[1] != None:
+        intervals = set([(first[1] - first[0])._value % 12, (second[1] - second[0])._value % 12, (third[1] - third[0])._value % 12, (fourth[1] - fourth[0])._value % 12])
+
+        if intervals == set([3, 4]) or intervals == set([8, 9]):
+          return False
+
+    return True
+
 class NotTooMuchMovement(HorizontalRule):
   def satisfied(self):
     pairs = list(zip(self._voice, self._voice[1:]))
@@ -308,6 +320,10 @@ def solve(species):
       if not rule.satisfied():
         continue
 
+      rule = NoSequencesOfParallelThirdsOrSixths(new._cantus, new._counterpoint)
+      if not rule.satisfied():
+        continue
+
       rule = AtMostTwoConsecutiveLeaps(new._counterpoint)
       if not rule.satisfied():
         continue
@@ -327,7 +343,11 @@ def solve(species):
 
       queue.append(new)
   
-  print len(solutions)
+  for solution in solutions:
+    print solution
+    print "\n"
+
+
 
 
 line = [48, 52, 53, 55, 52, 57, 55, 52, 53, 52, 50, 48]
