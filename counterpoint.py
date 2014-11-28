@@ -138,6 +138,34 @@ class FirstSpecies:
   def counterpoint(self, voice):
     self._counterpoint = voice # TODO check lengths?
 
+class Rule:
+  def satisfied(self):
+    return True
+
+class HorizontalRule(Rule):
+  _voice = None
+
+  def __init__(self, voice):
+    self._voice = voice
+
+class TwoVoiceVerticalRule(Rule):
+  _voices = []
+
+  def __init__(self, low, high):
+    _voices[0] = low
+    _voices[1] = high
+
+"""
+RULES
+"""
+class BeginOnUnisonFifthOrOctave(TwoVoiceVerticalRule):
+  def __init__(self, low, high):
+    TwoVoiceVerticalRule.__init__(self, low, high)
+
+  def satisfied(self):
+    print self._low[0]
+    print self._high[0]
+
 
 line = [48, 52, 53, 55, 52, 57, 55, 52, 53, 52, 50, 48]
 cantus = Voice("tenor", 12)
