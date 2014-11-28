@@ -1,3 +1,5 @@
+import collections, copy
+
 class Interval:
   _value = 0
 
@@ -164,13 +166,129 @@ class TwoVoiceVerticalRule(Rule):
 """
 RULES
 """
-class BeginOnUnisonFifthOrOctave(TwoVoiceVerticalRule):
-  def __init__(self, low, high):
-    TwoVoiceVerticalRule.__init__(self, low, high)
-
+class InKey(HorizontalRule):
   def satisfied(self):
-    print self._low[0]
-    print self._high[0]
+    for i in range(len(self._voice)):
+      if self._voice[i] != None:
+        if self._voice[i]._value % 12 not in [0, 2, 4, 5, 7, 9, 11]:
+          return False
+
+    return True
+
+class AllowedIntervals(HorizontalRule):
+  def satisfied(self):
+    for first, second in zip(self._voice, self._voice[1:]):
+      if first != None and second != None:
+        if abs((first - second)._value) not in [1, 2, 3, 4, 5, 7, 8, 9, 12]: # TODO should 0 be in here?
+          return False
+
+    return True
+
+class AtMostTwoConsecutiveLeaps(HorizontalRule):
+  def satisfied(self):
+    for first, second, third in zip(self._voice, self._voice[1:], self._voice[2:]):
+      if first != None and second != None and third != None:
+        if (second - first).type() == "leap" and (third - second).type() == "leap":
+          return False
+
+    return True
+
+class RangeAtMostTenth(HorizontalRule):
+  def satisfied(self):
+    if max(filter(None, self._voice)) - min(filter(None, self._voice)) >= Interval(15):
+      return False
+
+    return True
+
+class BeginOnUnisonFifthOrOctave(TwoVoiceVerticalRule):
+  def satisfied(self):
+    return self._voices[1][0] - self._voices[0][0] in [Interval(-12), Interval(0), Interval(7), Interval(12)]
+
+class OnlyUnisonAtBeginOrEnd(TwoVoiceVerticalRule):
+  def satisfied(self):
+    for first, second in zip(self._voices[0][1:-1], self._voices[1][1:-1]):
+      if first != None and second != None and first == second:
+        return False
+
+    return True
+
+class PartOfChord(TwoVoiceVerticalRule):
+  def satisfied(self):
+    for first, second in zip(self._voices[0], self._voices[1]):
+      if first != None and second != None and (second - first)._value not in [0, 3, 4, 7, 8, 9, 12, 15, 16]:
+        return False
+    
+    return True
+
+class NoParallelFifthsOrOctaves(TwoVoiceVerticalRule):
+  def satisfied(self):
+    for first, second in zip(zip(self._voices[0], self._voices[1]), zip(self._voices[0][1:], self._voices[1][1:])):
+      if first[0] != None and first[1] != None and second[0] != None and second[1] != None:
+        if first[1] - first[0] == second[1] - second[0] and (first[1] - first[0])._value in [0, 7, 12]:
+          return False
+    
+    return True
+
+
+
+
+def solve(species):
+  queue = collections.deque([species])
+
+  while len(queue) > 0:
+    print len(queue)
+
+    species = queue.popleft()
+
+    # look for first undefined note
+    i = 0
+    while i < len(species._counterpoint) and species._counterpoint[i] != None:
+      i = i + 1
+
+    print "up to", i, "notes now"
+
+    if i > 6:
+      print species
+
+    for v in [53, 55, 57, 59, 60, 62, 64, 65, 67, 69, 71, 72, 74, 76] : # TODO hardcoded voice range...
+      new = copy.deepcopy(species)
+      new._counterpoint[i] = Note(v)
+
+      rule = InKey(new._counterpoint)
+      if not rule.satisfied():
+        continue
+
+      rule = AllowedIntervals(new._counterpoint)
+      if not rule.satisfied():
+        continue
+
+      rule = RangeAtMostTenth(new._counterpoint)
+      if not rule.satisfied():
+        continue
+
+      rule = PartOfChord(new._cantus, new._counterpoint)
+      if not rule.satisfied():
+        continue
+
+      rule = OnlyUnisonAtBeginOrEnd(new._cantus, new._counterpoint)
+      if not rule.satisfied():
+        continue
+
+      rule = NoParallelFifthsOrOctaves(new._cantus, new._counterpoint)
+      if not rule.satisfied():
+        continue
+
+      rule = AtMostTwoConsecutiveLeaps(new._counterpoint)
+      if not rule.satisfied():
+        continue
+
+      rule = BeginOnUnisonFifthOrOctave(new._cantus, new._counterpoint)
+      if not rule.satisfied():
+        continue
+
+
+      queue.append(new)
+  
 
 
 line = [48, 52, 53, 55, 52, 57, 55, 52, 53, 52, 50, 48]
@@ -184,3 +302,4 @@ species = FirstSpecies()
 species.cantus(cantus)
 species.counterpoint(counterpoint)
 print species
+solve(species)
