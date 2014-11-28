@@ -55,7 +55,19 @@ class Note:
 
   # string representation
   def __str__(self):
-    return str(self._value) # TODO user-readable
+    output = ""
+
+    if self._value % 12 == 0: output += "C"
+    elif self._value % 12 == 2: output += "D"
+    elif self._value % 12 == 4: output += "E"
+    elif self._value % 12 == 5: output += "F"
+    elif self._value % 12 == 7: output += "G"
+    elif self._value % 12 == 9: output += "A"
+    elif self._value % 12 == 11: output += "B"
+
+    output += str(self._value / 12)
+
+    return output
 
 class Voice:
   _notes = []
