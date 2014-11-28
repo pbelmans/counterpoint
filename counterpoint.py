@@ -13,6 +13,15 @@ class Interval:
   def __sub__(self, other):
     return Interval(self._value - other._value)
 
+  # how big is the interval?
+  def type(self):
+    if abs(self._value) <= 2:
+      return "step"
+    elif abs(self.value_value) <= 5:
+      return "skip"
+    else:
+      return "leap"
+
   # string representation
   def __str__(self):
     return str(self._value)
