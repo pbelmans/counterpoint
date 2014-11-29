@@ -68,7 +68,7 @@ class EndOnUnisonOrOctave(TwoVoiceVerticalRule):
 
     return True
 
-class OnlyUnisonAtBeginOrEnd(TwoVoiceVerticalRule):
+class NoUnisonExceptAtBeginOrEnd(TwoVoiceVerticalRule):
   def satisfied(self):
     for first, second in zip(self._voices[0][1:-1], self._voices[1][1:-1]):
       if first != None and second != None and first == second:

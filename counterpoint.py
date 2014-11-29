@@ -33,7 +33,7 @@ def solve(species):
           Rules.AllowedIntervals,
           Rules.RangeAtMostTenth,
           Rules.PartOfChord,
-          Rules.OnlyUnisonAtBeginOrEnd,
+          Rules.NoUnisonExceptAtBeginOrEnd,
           Rules.NoParallelFifthsOrOctaves,
           Rules.NoSequencesOfParallelThirdsOrSixths,
           Rules.AtMostTwoConsecutiveLeaps,
