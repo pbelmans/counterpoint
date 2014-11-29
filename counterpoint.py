@@ -28,52 +28,41 @@ def solve(species):
       new = copy.deepcopy(species)
       new._counterpoint[i] = Music.Note(v)
 
-      rule = Rules.InKey(new._counterpoint)
-      if not rule.satisfied():
-        continue
+      rules = [
+          Rules.InKey,
+          Rules.AllowedIntervals,
+          Rules.RangeAtMostTenth,
+          Rules.PartOfChord,
+          Rules.OnlyUnisonAtBeginOrEnd,
+          Rules.NoParallelFifthsOrOctaves,
+          Rules.NoSequencesOfParallelThirdsOrSixths,
+          Rules.AtMostTwoConsecutiveLeaps,
+          Rules.NotTooMuchMovement,
+          Rules.BeginOnUnisonFifthOrOctave,
+          Rules.EndOnUnisonOrOctave
+        ]
+      
+      valid = True
 
-      rule = Rules.AllowedIntervals(new._counterpoint)
-      if not rule.satisfied():
-        continue
+      for rule in rules:
+        # horizontal rules must only be applied to the counterpoint
+        if issubclass(rule, Rules.HorizontalRule):
+          instance = rule(new._counterpoint)
 
-      rule = Rules.RangeAtMostTenth(new._counterpoint)
-      if not rule.satisfied():
-        continue
+          if not instance.satisfied():
+            valid = False
+            break
 
-      rule = Rules.PartOfChord(new._cantus, new._counterpoint)
-      if not rule.satisfied():
-        continue
+        # vertical rules are still a bit too strict in the order of the arguments I think TODO
+        if issubclass(rule, Rules.TwoVoiceVerticalRule):
+          instance = rule(new._cantus, new._counterpoint)
 
-      rule = Rules.OnlyUnisonAtBeginOrEnd(new._cantus, new._counterpoint)
-      if not rule.satisfied():
-        continue
+          if not instance.satisfied():
+            valid = False
+            break
 
-      rule = Rules.NoParallelFifthsOrOctaves(new._cantus, new._counterpoint)
-      if not rule.satisfied():
-        continue
-
-      rule = Rules.NoSequencesOfParallelThirdsOrSixths(new._cantus, new._counterpoint)
-      if not rule.satisfied():
-        continue
-
-      rule = Rules.AtMostTwoConsecutiveLeaps(new._counterpoint)
-      if not rule.satisfied():
-        continue
-
-      rule = Rules.NotTooMuchMovement(new._counterpoint)
-      if not rule.satisfied():
-        continue
-
-      rule = Rules.BeginOnUnisonFifthOrOctave(new._cantus, new._counterpoint)
-      if not rule.satisfied():
-        continue
-
-      rule = Rules.EndOnUnisonOrOctave(new._cantus, new._counterpoint)
-      if not rule.satisfied():
-        continue
-
-
-      queue.append(new)
+      if valid:
+        queue.append(new)
   
   for solution in solutions:
     print solution
