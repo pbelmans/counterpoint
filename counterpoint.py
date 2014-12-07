@@ -35,7 +35,11 @@ def solve(species):
 
     for v in [53, 55, 57, 59, 60, 62, 64, 65, 67, 69, 71, 72, 74, 76] : # TODO hardcoded voice range...
       if verbose: print "considering adding " + Music.Note(v).__str__()
-      new = copy.deepcopy(species)
+      
+      new = Species.FirstSpecies()
+      
+      new.cantus(species._cantus) # cantus remains unchanged
+      new.counterpoint(species._counterpoint.copy())
       new._counterpoint[i] = Music.Note(v)
 
       rules = [

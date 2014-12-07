@@ -120,6 +120,14 @@ class Voice:
 
     # we initialise the list to None's
     self._notes = [None] * length
+  
+  def copy(self):
+    other = Voice(self._type, len(self._notes))
+    
+    for i, note in enumerate(self._notes):
+      if note != None: other._notes[i] = Note(note._value)
+    
+    return other
 
   # container type methods
   def __getitem__(self, key):
