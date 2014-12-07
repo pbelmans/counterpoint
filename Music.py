@@ -141,3 +141,4 @@ class Voice:
 
     return output
 
+unison = Interval(0)

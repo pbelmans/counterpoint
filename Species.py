@@ -1,3 +1,5 @@
+import copy
+
 class FirstSpecies:
   _cantus = None
   _counterpoint = None
@@ -5,7 +7,7 @@ class FirstSpecies:
   def __str__(self):
     output = ""
     output += self._counterpoint.__str__() + "\n"
-    output += self._cantus.__str__()
+    output += self._cantus.__str__() + "\n"
 
     return output
 
