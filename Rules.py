@@ -52,13 +52,19 @@ RULES
 class InKey(HorizontalRule):
   """Check whether all notes in the voice are in the key"""
   def satisfied(self):
-    return all(map(lambda note: note._value % 12 in [0, 2, 4, 5, 7, 9, 11], filter(None, self._voice)))
+    key = [Music.P1, Music.M2, Music.M3, Music.P4, Music.P5, Music.M6, Music.M7]
+    tonic = Music.Note(48) # TODO hardcoded C major
+    return all(map(lambda note: Music.octaveReduce(note - tonic) in key, filter(None, self._voice)))
 
 class AllowedIntervals(HorizontalRule):
   def satisfied(self):
     for interval in horizontalIntervals(self._voice):
-      allowed = [-12, -7, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 7, 8, 12]
-      if interval not in map(Music.Interval, allowed):
+      descending = [-Music.P8, -Music.P5, -Music.P4, -Music.M3, -Music.m3, -Music.M2, -Music.m2, -Music.P1]
+      ascending = [Music.P1, Music.m2, Music.M2, Music.m3, Music.M3, Music.P4, Music.P5, Music.m6, Music.P8]
+      
+      allowed = descending + ascending
+      
+      if interval not in allowed:
         return False
 
     return True
@@ -74,7 +80,7 @@ class AtMostTwoConsecutiveLeaps(HorizontalRule):
 
 class AtMostOneRepetition(HorizontalRule):
   def satisfied(self):
-    return horizontalIntervals(self._voice).count(Music.unison) <= 1
+    return horizontalIntervals(self._voice).count(Music.P1) <= 1
 
 
 class RangeAtMostTenth(HorizontalRule):

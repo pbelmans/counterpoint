@@ -27,6 +27,9 @@ class Interval:
   
   def __le__(self, other):
     return self._value <= other._value
+  
+  def __neg__(self):
+    return Interval(-self._value)
 
   # how big is the interval?
   def type(self):
@@ -41,6 +44,9 @@ class Interval:
   def __str__(self):
     return str(self._value)
 
+def octaveReduce(interval):
+  # Turn the interval into an interval in 1 octave (= % 12)
+  return Interval(interval._value % 12)
 
 class Note:
   _value = 0
@@ -141,4 +147,16 @@ class Voice:
 
     return output
 
-unison = Interval(0)
+P1 = I   = Interval(0)
+m2 = ii  = Interval(1)
+M2 = II  = Interval(2)
+m3 = iii = Interval(3)
+M3 = III = Interval(4)
+P4 = IV  = Interval(5)
+d5 = Vo  = Interval(6)
+P5 = V   = Interval(7)
+m6 = vi  = Interval(8)
+M6 = VI  = Interval(9)
+m7 = vii = Interval(10)
+M7 = VII = Interval(11)
+P8 = O   = Interval(12)
