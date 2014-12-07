@@ -1,4 +1,7 @@
+import copy
+
 import Music
+
 
 class Rule:
   def satisfied(self):
@@ -19,9 +22,6 @@ class TwoVoiceVerticalRule(Rule):
     self._voices[1] = high
 
 
-
-"""
-RULES
 """
 helper functions
 """
@@ -45,22 +45,21 @@ def consecutiveVerticalIntervals(first, second, length):
 
   return zip(*pairs)
 
+
+"""
+RULES
 """
 class InKey(HorizontalRule):
+  """Check whether all notes in the voice are in the key"""
   def satisfied(self):
-    for i in range(len(self._voice)):
-      if self._voice[i] != None:
-        if self._voice[i]._value % 12 not in [0, 2, 4, 5, 7, 9, 11]:
-          return False
-
-    return True
+    return all(map(lambda note: note._value % 12 in [0, 2, 4, 5, 7, 9, 11], filter(None, self._voice)))
 
 class AllowedIntervals(HorizontalRule):
   def satisfied(self):
-    for first, second in zip(self._voice, self._voice[1:]):
-      if first != None and second != None:
-        if abs((first - second)._value) not in [1, 2, 3, 4, 5, 7, 8, 9, 12]: # TODO should 0 be in here?
-          return False
+    for interval in horizontalIntervals(self._voice):
+      allowed = [-12, -7, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 7, 8, 12]
+      if interval not in map(Music.Interval, allowed):
+        return False
 
     return True
 
@@ -73,6 +72,11 @@ class AtMostTwoConsecutiveLeaps(HorizontalRule):
 
     return True
 
+class AtMostOneRepetition(HorizontalRule):
+  def satisfied(self):
+    return horizontalIntervals(self._voice).count(Music.unison) <= 1
+
+
 class RangeAtMostTenth(HorizontalRule):
   def satisfied(self):
     if max(filter(None, self._voice)) - min(filter(None, self._voice)) >= Music.Interval(15): # TODO apply the filter trick more often (!)
@@ -82,7 +86,8 @@ class RangeAtMostTenth(HorizontalRule):
 
 class BeginOnUnisonFifthOrOctave(TwoVoiceVerticalRule):
   def satisfied(self):
-    return self._voices[1][0] - self._voices[0][0] in [Music.Interval(-12), Music.Interval(0), Music.Interval(7), Music.Interval(12)]
+    if self._voices[0][0] != None and self._voices[1][0] != None:
+      return self._voices[1][0] - self._voices[0][0] in [Music.Interval(-12), Music.Interval(0), Music.Interval(7), Music.Interval(12)]
 
 class EndOnUnisonOrOctave(TwoVoiceVerticalRule):
   def satisfied(self):
@@ -90,6 +95,7 @@ class EndOnUnisonOrOctave(TwoVoiceVerticalRule):
       return self._voices[1][-1] - self._voices[0][-1] in [Music.Interval(-12), Music.Interval(0), Music.Interval(12)]
 
     return True
+
 
 class NoUnisonExceptAtBeginOrEnd(TwoVoiceVerticalRule):
   def satisfied(self):
@@ -99,10 +105,12 @@ class NoUnisonExceptAtBeginOrEnd(TwoVoiceVerticalRule):
 
     return True
 
+
 class PartOfChord(TwoVoiceVerticalRule):
+  """Check whether all harmonic intervals are part of a chord"""
   def satisfied(self):
-    for first, second in zip(self._voices[0], self._voices[1]):
-      if first != None and second != None and (second - first)._value not in [0, 3, 4, 7, 8, 9, 12, 15, 16]:
+    for interval in verticalIntervals(self._voices[1], self._voices[0]): # TODO Python has a any or all method
+      if interval._value % 12 not in [0, 3, 4, 7, 8, 9, 12, 15, 16]:
         return False
     
     return True
@@ -124,7 +132,7 @@ class NoSequencesOfParallelThirdsOrSixths(TwoVoiceVerticalRule):
         intervals = set([(first[1] - first[0])._value % 12, (second[1] - second[0])._value % 12, (third[1] - third[0])._value % 12, (fourth[1] - fourth[0])._value % 12])
 
         if intervals == set([3, 4]) or intervals == set([8, 9]):
-          return False
+         return False
 
     return True
 
