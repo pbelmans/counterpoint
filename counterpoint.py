@@ -4,16 +4,25 @@ import Music, Rules, Species
 
 
 def solve(species):
+  # TODO remove this
+  considered = collections.defaultdict(int)
+  failed = collections.defaultdict(int)
+  
+  total = 0
+
   queue = collections.deque([species])
 
   solutions = []
 
   while len(queue) > 0:
-    print len(queue)
+    total = total + 1
 
     species = queue.popleft()
+    if verbose:
+      print "popped from the queue:"
+      print species
 
-    if len(filter(None, species._counterpoint)) == 12: # TODO hardcoded...
+    if len(filter(None, species._counterpoint)) == len(species._cantus):
       solutions.append(species)
       continue
 
@@ -22,34 +31,42 @@ def solve(species):
     while species._counterpoint[i] != None:
       i = i + 1
 
-    print "up to", i, "notes now"
+    if verbose: print "up to", i, "notes now"
 
     for v in [53, 55, 57, 59, 60, 62, 64, 65, 67, 69, 71, 72, 74, 76] : # TODO hardcoded voice range...
+      if verbose: print "considering adding " + Music.Note(v).__str__()
       new = copy.deepcopy(species)
       new._counterpoint[i] = Music.Note(v)
 
       rules = [
-          Rules.InKey,
-          Rules.AllowedIntervals,
-          Rules.RangeAtMostTenth,
+          # harmonic rules
           Rules.PartOfChord,
           Rules.NoUnisonExceptAtBeginOrEnd,
           Rules.NoParallelFifthsOrOctaves,
           Rules.NoSequencesOfParallelThirdsOrSixths,
-          Rules.AtMostTwoConsecutiveLeaps,
-          Rules.NotTooMuchMovement,
+          Rules.EndOnUnisonOrOctave,
           Rules.BeginOnUnisonFifthOrOctave,
-          Rules.EndOnUnisonOrOctave
+          Rules.NotTooMuchMovement,
+          # melodic rules
+          Rules.InKey, # TODO this isn't failing at the moment because we only add notes in the key
+          Rules.RangeAtMostTenth,
+          Rules.AllowedIntervals,
+          Rules.AtMostOneRepetition,
+          Rules.AtMostTwoConsecutiveLeaps,
         ]
       
       valid = True
 
       for rule in rules:
+        considered[rule.__name__] += 1
+        
         # horizontal rules must only be applied to the counterpoint
         if issubclass(rule, Rules.HorizontalRule):
           instance = rule(new._counterpoint)
 
           if not instance.satisfied():
+            failed[rule.__name__] += 1
+
             valid = False
             break
 
@@ -58,28 +75,46 @@ def solve(species):
           instance = rule(new._cantus, new._counterpoint)
 
           if not instance.satisfied():
+            failed[rule.__name__] += 1
+
             valid = False
             break
 
       if valid:
         queue.append(new)
+        
+      if verbose:
+        if valid: print " + this attempt was successful"
+        else: print "   this attempt failed because of " + rule.__name__
   
   for solution in solutions:
     print solution
     print "\n"
 
+  def pretty(considered, failed):
+    for key in considered.keys():
+      print key + ":\n\t" + str(considered[key]) + " vs " + str(failed[key])
+  
+  print pretty(considered, failed)
+  print "performed", total, "steps"
+  print "found", len(solutions), "solutions"
 
 
+verbose = True
 
-line = [48, 52, 53, 55, 52, 57, 55, 52, 53, 52, 50, 48]
-cantus = Music.Voice("tenor", 12)
-for i in range(12):
+#line = [48, 52, 53, 55, 52, 57, 55, 52, 53, 52, 50, 48]
+#line = [48, 50, 52, 47, 48, 45, 43, 48]
+line = [48, 50, 52, 47, 45, 43, 48]
+#line = [48, 50, 48]
+cantus = Music.Voice("bass", len(line))
+for i in range(len(line)):
   cantus[i] = Music.Note(line[i])
 
-counterpoint = Music.Voice("alto", 12)
+counterpoint = Music.Voice("alto", len(line))
 
 species = Species.FirstSpecies()
 species.cantus(cantus)
 species.counterpoint(counterpoint)
+print "starting with:"
 print species
 solve(species)
