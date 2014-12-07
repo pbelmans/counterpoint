@@ -23,6 +23,29 @@ class TwoVoiceVerticalRule(Rule):
 """
 RULES
 """
+helper functions
+"""
+def horizontalIntervals(voice):
+  """ Get all melodic intervals """
+  pairs = zip(voice, voice[1:])
+  pairs = filter(lambda pair: pair[0] != None and pair[1] != None, pairs)
+
+  return [pair[0] - pair[1] for pair in pairs]
+
+def verticalIntervals(first, second):
+  """ Get all harmonic intervals between two voices """
+  pairs = zip(first, second)
+  return [pair[0] - pair[1] for pair in pairs if pair[0] != None and pair[1] != None]
+
+def consecutiveVerticalIntervals(first, second, length):
+  """ Get all tuples of a specified length of consecutive harmonic intervals between two voices """
+  pairs = []
+  for i in range(length):
+    pairs.append(verticalIntervals(first[i:], second[i:]))
+
+  return zip(*pairs)
+
+"""
 class InKey(HorizontalRule):
   def satisfied(self):
     for i in range(len(self._voice)):
